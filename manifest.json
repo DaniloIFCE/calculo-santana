@@ -1,15 +1,23 @@
 {
   "name": "Santana Textiles Correção",
   "short_name": "SantanaApp",
+  "description": "Sistema de calculo de picos e eficiência de teares.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#002b5c",
   "theme_color": "#002b5c",
   "icons": [
     {
-      "src": "https://via.placeholder.com/512.png?text=ST",
+      "src": "https://www.pwabuilder.com/assets/icons/icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://www.pwabuilder.com/assets/icons/icon_512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
