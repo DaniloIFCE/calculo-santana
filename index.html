@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Santana Textiles - Correção</title>
+    <meta name="theme-color" content="#002b5c">
+    <style>
+        :root {
+            --azul-marinho: #002b5c;
+            --cinza-claro: #f4f4f9;
+            --texto: #333;
+            --sucesso: #28a745;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--cinza-claro);
+            color: var(--texto);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 8px solid var(--azul-marinho);
+        }
+
+        h2 { color: var(--azul-marinho); text-align: center; margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px; /* Evita zoom automático no iPhone/Android */
+        }
+
+        input[readonly] { background-color: #e9ecef; cursor: not-allowed; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 8px;
+            border-left: 5px solid var(--azul-marinho);
+        }
+
+        .destaque { font-weight: bold; color: var(--azul-marinho); font-size: 1.1em; }
+
+        .footer { margin-top: 20px; font-size: 12px; color: #777; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Correção de Teares</h2>
+    
+    <div class="form-group">
+        <label>Turno</label>
+        <select id="turno" onchange="atualizarTurno()">
+            <option value="">Selecione...</option>
+            <option value="A">Turno A (05:00 - 13:00)</option>
+            <option value="B">Turno B (13:00 - 21:00)</option>
+            <option value="C">Turno C (21:00 - 05:00)</option>
+        </select>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label>Início R1</label>
+            <input type="time" id="inicioR1" readonly>
+        </div>
+        <div class="form-group">
+            <label>Fim R2</label>
+            <input type="time" id="fimR2" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Fim R1 / Início R2 (Poka-Yoke)</label>
+        <input type="time" id="divisor" oninput="calcular()">
+    </div>
+
+    <hr>
+
+    <div class="form-group">
+        <label>RPM do Tear</label>
+        <input type="number" id="rpm" placeholder="Ex: 550" oninput="calcular()">
+    </div>
+
+    <div class="form-group">
+        <label>Picos Totais Coletados</label>
+        <input type="number" id="picosTotais" placeholder="Ex: 120000" oninput="calcular()">
+    </div>
+
+    <div class="resultado" id="painelResultado" style="display:none;">
+        <p>Distribuição R1: <span class="destaque" id="resR1">0</span> picos</p>
+        <p>Distribuição R2: <span class="destaque" id="resR2">0</span> picos</p>
+        <p>Eficiência Real: <span id="resEfi">0</span>%</p>
+    </div>
+</div>
+
+<div class="footer">Santana Textiles - Engenharia de Processos</div>
+
+<script>
+    const turnosConfig = {
+        'A': { in: "05:00", out: "13:00" },
+        'B': { in: "13:00", out: "21:00" },
+        'C': { in: "21:00", out: "05:00" }
+    };
+
+    function atualizarTurno() {
+        const turno = document.getElementById('turno').value;
+        if (turno) {
+            document.getElementById('inicioR1').value = turnosConfig[turno].in;
+            document.getElementById('fimR2').value = turnosConfig[turno].out;
+            calcular();
+        }
+    }
+
+    function min(horaStr) {
+        if(!horaStr) return 0;
+        const [h, m] = horaStr.split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    function calcular() {
+        const rpm = parseFloat(document.getElementById('rpm').value);
+        const picosTotais = parseFloat(document.getElementById('picosTotais').value);
+        const h1 = document.getElementById('inicioR1').value;
+        const hDiv = document.getElementById('divisor').value;
+        const h2 = document.getElementById('fimR2').value;
+
+        if (!rpm || !picosTotais || !hDiv) return;
+
+        // Lógica Midnight Crossover (MOD 1440)
+        const tInicio = min(h1);
+        const tDiv = min(hDiv);
+        const tFim = min(h2);
+
+        const duracaoR1 = (tDiv - tInicio + 1440) % 1440;
+        const duracaoR2 = (tFim - tDiv + 1440) % 1440;
+        const tempoTotal = duracaoR1 + duracaoR2;
+
+        const eficienciaReal = picosTotais / (rpm * tempoTotal);
+        
+        const picosR1 = Math.round(rpm * duracaoR1 * eficienciaReal);
+        const picosR2 = picosTotais - picosR1;
+
+        document.getElementById('resR1').innerText = picosR1.toLocaleString('pt-BR');
+        document.getElementById('resR2').innerText = picosR2.toLocaleString('pt-BR');
+        document.getElementById('resEfi').innerText = (eficienciaReal * 100).toFixed(2);
+        document.getElementById('painelResultado').style.display = 'block';
+    }
+</script>
+</body>
+</html>
