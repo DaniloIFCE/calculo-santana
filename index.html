@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Santana Textiles - Correção</title>
+    
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#002b5c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <style>
         :root {
             --azul-marinho: #002b5c;
             --cinza-claro: #f4f4f9;
             --texto: #333;
-            --sucesso: #28a745;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--cinza-claro);
             color: var(--texto);
             margin: 0;
@@ -46,10 +48,10 @@
             border: 1px solid #ccc;
             border-radius: 6px;
             box-sizing: border-box;
-            font-size: 16px; /* Evita zoom automático no iPhone/Android */
+            font-size: 16px;
         }
 
-        input[readonly] { background-color: #e9ecef; cursor: not-allowed; }
+        input[readonly] { background-color: #e9ecef; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
@@ -59,6 +61,7 @@
             background: #e7f3ff;
             border-radius: 8px;
             border-left: 5px solid var(--azul-marinho);
+            display: none;
         }
 
         .destaque { font-weight: bold; color: var(--azul-marinho); font-size: 1.1em; }
@@ -109,16 +112,21 @@
         <input type="number" id="picosTotais" placeholder="Ex: 120000" oninput="calcular()">
     </div>
 
-    <div class="resultado" id="painelResultado" style="display:none;">
+    <div class="resultado" id="painelResultado">
         <p>Distribuição R1: <span class="destaque" id="resR1">0</span> picos</p>
         <p>Distribuição R2: <span class="destaque" id="resR2">0</span> picos</p>
-        <p>Eficiência Real: <span id="resEfi">0</span>%</p>
+        <p>Eficiência Real: <span id="resEfi" class="destaque">0</span>%</p>
     </div>
 </div>
 
 <div class="footer">Santana Textiles - Engenharia de Processos</div>
 
 <script>
+    // Registro do Service Worker (Obrigatório para o PWABuilder)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+
     const turnosConfig = {
         'A': { in: "05:00", out: "13:00" },
         'B': { in: "13:00", out: "21:00" },
@@ -149,11 +157,11 @@
 
         if (!rpm || !picosTotais || !hDiv) return;
 
-        // Lógica Midnight Crossover (MOD 1440)
         const tInicio = min(h1);
         const tDiv = min(hDiv);
         const tFim = min(h2);
 
+        // Lógica Midnight Crossover
         const duracaoR1 = (tDiv - tInicio + 1440) % 1440;
         const duracaoR2 = (tFim - tDiv + 1440) % 1440;
         const tempoTotal = duracaoR1 + duracaoR2;
