@@ -1,181 +1,437 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Santana Textiles - Correção</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#002b5c">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Santana Textiles - Ajuste de Teares</title>
     <style>
         :root {
-            --azul-marinho: #002b5c;
-            --cinza-claro: #f4f4f9;
-            --texto: #333;
+            --primary-blue: #0f4098;
+            --bg-light: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-dark: #333;
+            --border-color: #ddd;
+            --editable-bg: #fffbe6;
+            --readonly-bg: #f0f0f0;
+            --success-green: #008000;
+            --warning-red: #d9534f;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--cinza-claro);
-            color: var(--texto);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding-bottom: 30px;
+        }
+
+        header {
+            background-color: var(--primary-blue);
+            height: 50px;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .container {
             width: 100%;
-            max-width: 400px;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-top: 8px solid var(--azul-marinho);
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 15px;
         }
 
-        h2 { color: var(--azul-marinho); text-align: center; margin-bottom: 20px; }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--bg-light);
+            padding-bottom: 8px;
+        }
 
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 600; }
         
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 16px;
+        .form-control {
+            width: 100%; padding: 12px; font-size: 1rem; border: 1px solid var(--border-color);
+            border-radius: 4px; color: var(--text-dark);
         }
 
-        input[readonly] { background-color: #e9ecef; }
+        .form-control:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(15, 64, 152, 0.1); }
+        .input-editable { background-color: var(--editable-bg); cursor: text; }
+        .input-readonly { background-color: var(--readonly-bg); cursor: not-allowed; color: #777; }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        .resultado {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e7f3ff;
-            border-radius: 8px;
-            border-left: 5px solid var(--azul-marinho);
-            display: none;
+        .btn-calculate {
+            width: 100%; padding: 15px; background-color: var(--primary-blue); color: white;
+            border: none; border-radius: 4px; font-size: 1.1rem; font-weight: bold;
+            cursor: pointer; text-transform: uppercase; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        .destaque { font-weight: bold; color: var(--azul-marinho); font-size: 1.1em; }
+        #executiveReport { display: none; }
+        #executiveReport.active { display: block; }
 
-        .footer { margin-top: 20px; font-size: 12px; color: #777; text-align: center; }
+        .report-section { margin-bottom: 20px; }
+        .report-section-title { font-size: 0.9rem; font-weight: bold; color: var(--primary-blue); margin-bottom: 10px; text-transform: uppercase; }
+        
+        .efficiency-calc { text-align: center; margin-bottom: 20px; }
+        .efficiency-percent { font-size: 3rem; font-weight: bold; color: var(--success-green); }
+        .alert-text { color: var(--warning-red); font-weight: bold; }
+
+        .consistency-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; font-size: 0.9rem; margin-bottom: 15px; }
+        .consistency-grid-row { display: contents; }
+        .consistency-grid-row span:first-child { font-weight: bold; }
+        .consistency-grid-row span:last-child { text-align: right; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; text-align: center; margin-bottom: 15px; }
+        .summary-box { background-color: var(--bg-light); padding: 10px; border-radius: 4px; }
+        .summary-title { font-size: 0.8rem; color: #666; margin-bottom: 5px; }
+        .summary-value { font-size: 1.2rem; font-weight: bold; color: var(--primary-blue); }
+
+        .intervals-flex { display: flex; gap: 10px; }
+        .interval-box { flex: 1; border: 1px solid var(--border-color); border-radius: 4px; padding: 15px; text-align: center; }
+        .interval-title { font-size: 0.9rem; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .interval-picos { font-size: 1.8rem; font-weight: bold; color: var(--primary-blue); margin-bottom: 5px; }
+        .interval-time { font-size: 0.8rem; color: #888; }
+
+        /* Nova seção de Metros no Relatório */
+        .metros-grid { grid-template-columns: repeat(3, 1fr); }
+        .metros-value { font-size: 1.1rem; color: #008000; font-weight: bold;}
+
+        footer { text-align: center; font-size: 0.8rem; color: #666; padding: 15px; margin-top: 20px; border-top: 1px solid var(--border-color); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Correção de Teares</h2>
-    
-    <div class="form-group">
-        <label>Turno</label>
-        <select id="turno" onchange="atualizarTurno()">
-            <option value="">Selecione...</option>
-            <option value="A">Turno A (05:00 - 13:00)</option>
-            <option value="B">Turno B (13:00 - 21:00)</option>
-            <option value="C">Turno C (21:00 - 05:00)</option>
-        </select>
-    </div>
+    <header></header>
 
-    <div class="grid-2">
-        <div class="form-group">
-            <label>Início R1</label>
-            <input type="time" id="inicioR1" readonly>
+    <div class="container">
+        <div class="card">
+            <h2>1. ENTRADA DE DADOS</h2>
+            
+            <div class="form-group">
+                <label for="shiftSelect">Selecione o Turno:</label>
+                <select id="shiftSelect" class="form-control input-editable">
+                    <option value="A">Turno A (05:00 - 13:20)</option>
+                    <option value="B">Turno B (13:20 - 21:40)</option>
+                    <option value="C">Turno C (21:40 - 05:00)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="inputRpm">1. RPM do Tear:</label>
+                <input type="number" inputmode="numeric" id="inputRpm" class="form-control input-editable">
+            </div>
+
+            <div class="form-group">
+                <label for="inputPicos">2. Picos Totais (Contador):</label>
+                <input type="number" inputmode="numeric" id="inputPicos" class="form-control input-editable">
+            </div>
+
+            <div class="time-grid">
+                <div class="form-group">
+                    <label>R1 Início:</label>
+                    <input type="time" id="inputR1Inicio" class="form-control input-readonly" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="inputR1Fim">R1 Fim:</label>
+                    <input type="time" id="inputR1Fim" class="form-control input-editable">
+                </div>
+                <div class="form-group">
+                    <label>R2 Início:</label>
+                    <input type="time" id="inputR2Inicio" class="form-control input-readonly" readonly>
+                </div>
+                <div class="form-group">
+                    <label>R2 Fim:</label>
+                    <input type="time" id="inputR2Fim" class="form-control input-readonly" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="inputMetros">3. Metros Prod.: (Formato: XXX,X)</label>
+                <input type="text" inputmode="numeric" id="inputMetros" class="form-control input-editable" placeholder="Ex: 123,5">
+            </div>
+
+            <div class="form-group">
+                <label for="inputEficienciaRef">4. EFI Ref. (%): (Formato: XX,X)</label>
+                <input type="text" inputmode="numeric" id="inputEficienciaRef" class="form-control input-editable" placeholder="Ex: 78,9">
+            </div>
+
+            <button class="btn-calculate" onclick="calculate()">DISTRIBUIR PICOS E CORRIGIR</button>
         </div>
-        <div class="form-group">
-            <label>Fim R2</label>
-            <input type="time" id="fimR2" readonly>
+
+        <div id="executiveReport" class="card">
+            <h2 id="reportTitle">2. RELATÓRIO EXECUTIVO (TURNO A)</h2>
+            
+            <div class="report-section efficiency-calc">
+                <div class="report-section-title">EFICIÊNCIA CALCULADA:</div>
+                <div id="outEficienciaPercent" class="efficiency-percent">0.00%</div>
+                <div id="outEfficiencyAlert" class="alert-text">ALERTA DE INCONSISTÊNCIA</div>
+            </div>
+
+            <div class="report-section">
+                <div class="report-section-title">VALIDAÇÃO DE CONSISTÊNCIA</div>
+                <div class="consistency-grid">
+                    <div class="consistency-grid-row">
+                        <span>EFI Referência:</span>
+                        <span id="outEficienciaRef">0.00%</span>
+                    </div>
+                    <div class="consistency-grid-row alert-text">
+                        <span>Diferença:</span>
+                        <span id="outEfficiencyDiff">0.00%</span>
+                    </div>
+                    <div class="consistency-grid-row">
+                        <span>Batidas/m:</span>
+                        <span id="outBatidasM">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <div class="report-section-title">RESUMO DE TEMPO E RODAGEM</div>
+                <div class="summary-grid">
+                    <div class="summary-box">
+                        <div class="summary-title">Bruto</div>
+                        <div id="outTempoBruto" class="summary-value">0 min</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="summary-title">Parado</div>
+                        <div id="outTempoParado" class="summary-value">0 min</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="summary-title">Rodagem</div>
+                        <div id="outTempoRodagem" class="summary-value">0 min</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="summary-title">Picos Teóricos</div>
+                        <div id="outPicosTeoricos" class="summary-value">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <div class="report-section-title">VALORES A SEREM INSERIDOS NO SISTEMA (Picos)</div>
+                <div class="intervals-flex">
+                    <div class="interval-box">
+                        <div class="interval-title">INTERVALO 1</div>
+                        <div id="outPicosR1" class="interval-picos">0</div>
+                        <div id="outTimeDetailR1" class="interval-time">0% | 0 min</div>
+                    </div>
+                    <div class="interval-box">
+                        <div class="interval-title">INTERVALO 2</div>
+                        <div id="outPicosR2" class="interval-picos">0</div>
+                        <div id="outTimeDetailR2" class="interval-time">0% | 0 min</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <div class="report-section-title">PRODUÇÃO EM METROS (APROXIMADA)</div>
+                <div class="summary-grid metros-grid">
+                    <div class="summary-box">
+                        <div class="summary-title">Total Lido</div>
+                        <div id="outMetrosTotal" class="metros-value">0 m</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="summary-title">Metros R1</div>
+                        <div id="outMetrosR1" class="metros-value">0 m</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="summary-title">Metros R2</div>
+                        <div id="outMetrosR2" class="metros-value">0 m</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <footer>
+            Desenvolvido por: Danilo Gomes Bandeira<br>
+            Gerado em: <span id="currentTimestamp">---</span>
+        </footer>
+
     </div>
 
-    <div class="form-group">
-        <label>Fim R1 / Início R2 (Poka-Yoke)</label>
-        <input type="time" id="divisor" oninput="calcular()">
-    </div>
+    <script>
+        const shiftTimes = {
+            'A': { r1Início: '05:00', r2Fim: '13:20' },
+            'B': { r1Início: '13:20', r2Fim: '21:40' },
+            'C': { r1Início: '21:40', r2Fim: '05:00' }
+        };
 
-    <hr>
+        const shiftSelect = document.getElementById('shiftSelect');
+        const r1Início = document.getElementById('inputR1Inicio');
+        const r1Fim = document.getElementById('inputR1Fim');
+        const r2Início = document.getElementById('inputR2Inicio');
+        const r2Fim = document.getElementById('inputR2Fim');
+        const metrosInput = document.getElementById('inputMetros');
+        const efiRefInput = document.getElementById('inputEficienciaRef');
 
-    <div class="form-group">
-        <label>RPM do Tear</label>
-        <input type="number" id="rpm" placeholder="Ex: 550" oninput="calcular()">
-    </div>
+        // ==== MÁSCARAS DE DIGITAÇÃO AUTOMÁTICA EM TEMPO REAL ====
 
-    <div class="form-group">
-        <label>Picos Totais Coletados</label>
-        <input type="number" id="picosTotais" placeholder="Ex: 120000" oninput="calcular()">
-    </div>
+        // Ponto 3: Metros (Formato XXX,X)
+        metrosInput.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, ''); // Remove tudo que não for número
+            if (val.length > 4) val = val.substring(0, 4); // Trava em 4 dígitos máximos
 
-    <div class="resultado" id="painelResultado">
-        <p>Distribuição R1: <span class="destaque" id="resR1">0</span> picos</p>
-        <p>Distribuição R2: <span class="destaque" id="resR2">0</span> picos</p>
-        <p>Eficiência Real: <span id="resEfi" class="destaque">0</span>%</p>
-    </div>
-</div>
+            if (val.length >= 4) {
+                // Se digitou o 4º dígito, a vírgula entra após o 3º
+                this.value = val.substring(0, 3) + ',' + val.substring(3);
+            } else {
+                // Caso contrário, mostra apenas os números
+                this.value = val;
+            }
+        });
 
-<div class="footer">Santana Textiles - Engenharia de Processos</div>
+        // Ponto 4: Eficiência (Formato XX,X)
+        efiRefInput.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, ''); 
+            if (val.length > 3) val = val.substring(0, 3); // Trava em 3 dígitos máximos
 
-<script>
-    // Registro do Service Worker (Obrigatório para o PWABuilder)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
+            if (val.length >= 3) {
+                // Se digitou o 3º dígito, a vírgula entra após o 2º
+                this.value = val.substring(0, 2) + ',' + val.substring(2);
+            } else {
+                this.value = val;
+            }
+        });
 
-    const turnosConfig = {
-        'A': { in: "05:00", out: "13:00" },
-        'B': { in: "13:00", out: "21:00" },
-        'C': { in: "21:00", out: "05:00" }
-    };
+        // =========================================================
 
-    function atualizarTurno() {
-        const turno = document.getElementById('turno').value;
-        if (turno) {
-            document.getElementById('inicioR1').value = turnosConfig[turno].in;
-            document.getElementById('fimR2').value = turnosConfig[turno].out;
-            calcular();
+        function updateShiftTimes() {
+            const shift = shiftSelect.value;
+            const times = shiftTimes[shift];
+            r1Início.value = times.r1Início;
+            r2Fim.value = times.r2Fim;
+            
+            r1Fim.value = '';
+            r2Início.value = '';
         }
-    }
 
-    function min(horaStr) {
-        if(!horaStr) return 0;
-        const [h, m] = horaStr.split(':').map(Number);
-        return h * 60 + m;
-    }
+        r1Fim.addEventListener('input', () => {
+            r2Início.value = r1Fim.value;
+        });
 
-    function calcular() {
-        const rpm = parseFloat(document.getElementById('rpm').value);
-        const picosTotais = parseFloat(document.getElementById('picosTotais').value);
-        const h1 = document.getElementById('inicioR1').value;
-        const hDiv = document.getElementById('divisor').value;
-        const h2 = document.getElementById('fimR2').value;
+        shiftSelect.addEventListener('change', updateShiftTimes);
+        updateShiftTimes();
 
-        if (!rpm || !picosTotais || !hDiv) return;
+        function timeToMinutes(timeStr) {
+            const parts = timeStr.split(':');
+            return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+        }
 
-        const tInicio = min(h1);
-        const tDiv = min(hDiv);
-        const tFim = min(h2);
+        function calculate() {
+            const rpmRaw = document.getElementById('inputRpm').value;
+            const picosRaw = document.getElementById('inputPicos').value;
+            const metrosRaw = metrosInput.value;
+            const efiRefRaw = efiRefInput.value;
+            const r1FimRaw = r1Fim.value;
 
-        // Lógica Midnight Crossover
-        const duracaoR1 = (tDiv - tInicio + 1440) % 1440;
-        const duracaoR2 = (tFim - tDiv + 1440) % 1440;
-        const tempoTotal = duracaoR1 + duracaoR2;
+            if (!rpmRaw || !picosRaw || !metrosRaw || !efiRefRaw || !r1FimRaw) {
+                alert("Por favor, preencha todos os campos antes de calcular.");
+                return;
+            }
 
-        const eficienciaReal = picosTotais / (rpm * tempoTotal);
-        
-        const picosR1 = Math.round(rpm * duracaoR1 * eficienciaReal);
-        const picosR2 = picosTotais - picosR1;
+            const rpm = parseInt(rpmRaw, 10);
+            const picosTotais = parseInt(picosRaw, 10);
+            const metrosProd = parseFloat(metrosRaw.replace(',', '.'));
+            const efiRef = parseFloat(efiRefRaw.replace(',', '.')) / 100;
 
-        document.getElementById('resR1').innerText = picosR1.toLocaleString('pt-BR');
-        document.getElementById('resR2').innerText = picosR2.toLocaleString('pt-BR');
-        document.getElementById('resEfi').innerText = (eficienciaReal * 100).toFixed(2);
-        document.getElementById('painelResultado').style.display = 'block';
-    }
-</script>
+            const minR1Início = timeToMinutes(r1Início.value);
+            const minR1Fim = timeToMinutes(r1FimRaw);
+            const minR2Fim = timeToMinutes(r2Fim.value);
+
+            let tempoR1 = minR1Fim - minR1Início;
+            if (tempoR1 < 0) tempoR1 += 24 * 60; 
+
+            let tempoR2 = minR2Fim - minR1Fim;
+            if (tempoR2 < 0) tempoR2 += 24 * 60; 
+
+            const tempoTotalRodagem = tempoR1 + tempoR2;
+
+            const picosTeoricosTotal = rpm * tempoTotalRodagem;
+            const eficienciaCalculada = picosTotais / picosTeoricosTotal;
+
+            const picosR1 = Math.round(rpm * tempoR1 * eficienciaCalculada);
+            let picosR2 = Math.round(rpm * tempoR2 * eficienciaCalculada);
+            
+            const somaPicos = picosR1 + picosR2;
+            if (somaPicos !== picosTotais) {
+                picosR2 += (picosTotais - somaPicos);
+            }
+
+            // Cálculo dos Metros Reais Distribuídos Proporcionalmente
+            const proporcaoR1 = picosR1 / picosTotais;
+            const proporcaoR2 = picosR2 / picosTotais;
+            
+            const metrosR1 = metrosProd * proporcaoR1;
+            const metrosR2 = metrosProd * proporcaoR2;
+
+            const batidasM = metrosProd > 0 ? (picosTotais / metrosProd) : 0;
+            const efiDiff = eficienciaCalculada - efiRef;
+
+            // Preenchendo a Interface
+            document.getElementById('reportTitle').innerText = `2. RELATÓRIO EXECUTIVO (TURNO ${shiftSelect.value})`;
+            
+            const outEficienciaPercent = document.getElementById('outEficienciaPercent');
+            outEficienciaPercent.innerText = (eficienciaCalculada * 100).toFixed(2) + '%';
+            
+            const outEfficiencyAlert = document.getElementById('outEfficiencyAlert');
+            if (Math.abs(efiDiff) > 0.05) { 
+                outEficienciaPercent.style.color = 'var(--warning-red)';
+                outEfficiencyAlert.style.display = 'block';
+            } else {
+                outEficienciaPercent.style.color = 'var(--success-green)';
+                outEfficiencyAlert.style.display = 'none';
+            }
+
+            document.getElementById('outEficienciaRef').innerText = (efiRef * 100).toFixed(2) + '%';
+            const outEfficiencyDiff = document.getElementById('outEfficiencyDiff');
+            outEfficiencyDiff.innerText = (efiDiff * 100).toFixed(2) + '%';
+            outEfficiencyDiff.parentElement.className = Math.abs(efiDiff) > 0.05 ? "consistency-grid-row alert-text" : "consistency-grid-row";
+
+            const outBatidasM = document.getElementById('outBatidasM');
+            const idealBatidasM = 1500; 
+            const batidasMDiff = Math.abs(batidasM - idealBatidasM) / idealBatidasM;
+            outBatidasM.innerText = batidasM.toFixed(1) + (batidasMDiff > 0.1 ? " (ATENÇÃO)" : "");
+            outBatidasM.parentElement.className = batidasMDiff > 0.1 ? "consistency-grid-row alert-text" : "consistency-grid-row";
+
+            document.getElementById('outTempoBruto').innerText = tempoTotalRodagem + " min";
+            document.getElementById('outTempoParado').innerText = "0 min";
+            document.getElementById('outTempoRodagem').innerText = tempoTotalRodagem + " min";
+            document.getElementById('outPicosTeoricos').innerText = picosTeoricosTotal.toLocaleString('pt-BR');
+
+            document.getElementById('outPicosR1').innerText = picosR1.toLocaleString('pt-BR');
+            document.getElementById('outPicosR2').innerText = picosR2.toLocaleString('pt-BR');
+
+            const percentR1 = (tempoR1 / tempoTotalRodagem * 100).toFixed(1);
+            const percentR2 = (tempoR2 / tempoTotalRodagem * 100).toFixed(1);
+            document.getElementById('outTimeDetailR1').innerText = `${percentR1}% | ${tempoR1} min`;
+            document.getElementById('outTimeDetailR2').innerText = `${percentR2}% | ${tempoR2} min`;
+
+            // Preenchendo a nova seção de Metros
+            document.getElementById('outMetrosTotal').innerText = metrosProd.toFixed(1).replace('.', ',') + " m";
+            document.getElementById('outMetrosR1').innerText = metrosR1.toFixed(1).replace('.', ',') + " m";
+            document.getElementById('outMetrosR2').innerText = metrosR2.toFixed(1).replace('.', ',') + " m";
+
+            document.getElementById('executiveReport').classList.add('active');
+            
+            const now = new Date();
+            document.getElementById('currentTimestamp').innerText = now.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+            
+            document.getElementById('executiveReport').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>
